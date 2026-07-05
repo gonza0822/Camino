@@ -1,0 +1,61 @@
+---
+description: Motion, Chart.js, TanStack Table y Mongoose — librerías obligatorias del stack
+alwaysApply: true
+---
+
+# Librerías obligatorias del stack
+
+Usar **exclusivamente** estas librerías para animaciones, gráficos, tablas y acceso a MongoDB. No alternativas (Recharts, Nivo, react-table legacy, driver nativo de MongoDB, Prisma, etc.) salvo decisión explícita documentada.
+
+## Framer Motion (animaciones)
+
+- **Toda** animación de UI interactiva o transiciones de entrada/salida: **Framer Motion**.
+- Solo en **Client Components** (`"use client"`).
+- Animar **`transform`** y **`opacity`**; evitar `width`, `height`, `top`, `left`.
+- **`AnimatePresence`** solo cuando hagan falta exit animations.
+- No animar candidatos **LCP** (hero, imagen principal).
+- Respetar **`useReducedMotion`** / `prefers-reduced-motion`.
+- Colocar componentes animados en `components/` o `features/<name>/components/`.
+
+## Chart.js (gráficos)
+
+- **Todo** gráfico o visualización de datos: **Chart.js** (`chart.js` + `react-chartjs-2` si aplica).
+- Componente cliente dedicado por gráfico (ej. `features/reports/components/RevenueChart.tsx`).
+- El **Server Component** padre obtiene los datos; el chart recibe **props tipadas**.
+- Carga pesada: **`dynamic(() => import(...), { ssr: false })`**.
+- Registrar solo los controllers/elements que se usen (tree-shaking).
+- No `<canvas>` manual ni otras libs de charts.
+
+## TanStack Table (grillas)
+
+- **Toda** tabla con sorting, filtros, paginación o columnas dinámicas: **@tanstack/react-table**.
+- Componente cliente dedicado (ej. `features/data-grid/components/DataGrid.tsx`).
+- Datasets grandes: **server-side** pagination, sorting y filtering vía Route Handler → MongoDB (`skip`/`limit` o cursor).
+- Estado de tabla (página actual, sort) en el componente o Redux si debe persistir entre rutas.
+- No `<table>` estático con lógica custom cuando TanStack Table cubre el caso; HTML semántico dentro de las celdas/filas que renderiza TanStack.
+
+## Patrón de composición
+
+```tsx
+// app/(dashboard)/reports/page.tsx — Server Component
+export default async function ReportsPage() {
+  const data = await getReportData();
+  return <RevenueChart data={data} />;
+}
+
+// features/reports/components/RevenueChart.tsx — "use client"
+```
+
+Misma separación para grillas: página servidor → `DataGrid` cliente.
+
+## Mongoose (MongoDB)
+
+- **Toda** conexión y acceso a MongoDB: **Mongoose** (`mongoose`).
+- Conexión **singleton** en `lib/db/mongodb.ts`; schemas y modelos en `lib/db/models/`.
+- Queries desde `lib/services/` o `lib/repositories/` usando modelos Mongoose — no el driver nativo (`mongodb`).
+- Validación de documentos en schemas Mongoose; entrada HTTP adicional con Zod en `lib/validators/` si aplica.
+- `MONGODB_URI` solo en servidor — nunca `NEXT_PUBLIC_*`.
+
+## Dependencias nuevas
+
+- No agregar librerías que solapen Motion, Chart.js, TanStack Table o Mongoose sin justificar peso y motivo en el PR/commit.
