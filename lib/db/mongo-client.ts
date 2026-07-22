@@ -21,7 +21,7 @@ function getMongoUri(): string {
   return uri;
 }
 
-// Resolves a shared MongoClient; reconnects when MONGODB_URI changes in dev.
+// Lazily connects so Next.js build can import this module without MONGODB_URI.
 function getClientPromise(): Promise<MongoClient> {
   const uri = getMongoUri();
 
@@ -46,19 +46,28 @@ function getClientPromise(): Promise<MongoClient> {
     return connected;
   });
 
-  if (process.env.NODE_ENV === "development") {
-    global._mongoClientPromise = promise.catch((error) => {
-      global._mongoClientPromise = undefined;
-      global._mongoClient = undefined;
-      global._mongoClientUri = undefined;
-      throw error;
-    });
-    global._mongoClientUri = uri;
-  }
+  global._mongoClientPromise = promise.catch((error) => {
+    global._mongoClientPromise = undefined;
+    global._mongoClient = undefined;
+    global._mongoClientUri = undefined;
+    throw error;
+  });
+  global._mongoClientUri = uri;
 
-  return promise;
+  return global._mongoClientPromise;
 }
 
-const clientPromise = getClientPromise();
+const clientPromise: Promise<MongoClient> = {
+  then(onFulfilled, onRejected) {
+    return getClientPromise().then(onFulfilled, onRejected);
+  },
+  catch(onRejected) {
+    return getClientPromise().catch(onRejected);
+  },
+  finally(onFinally) {
+    return getClientPromise().finally(onFinally);
+  },
+  [Symbol.toStringTag]: "Promise",
+} as Promise<MongoClient>;
 
 export default clientPromise;

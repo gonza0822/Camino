@@ -60,7 +60,7 @@ export default async function WeeklyPage({ searchParams }: WeeklyPageProps) {
           <h2 className="mb-4 text-lg font-semibold text-primary">
             {appContent.weekly.agendaTitle}
           </h2>
-          <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-zinc-100" />}>
+          <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-primary/10" />}>
             <WeeklyAgendaGrid
               weekStart={weekStart}
               dates={dates}

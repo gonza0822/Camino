@@ -43,8 +43,8 @@ export function WeeklyAgendaGrid({
             className={cn(
               "shrink-0 rounded-lg px-3 py-2 text-sm font-medium capitalize transition-colors duration-200 cursor-pointer",
               activeDate === date
-                ? "bg-cta text-white"
-                : "bg-surface border border-border text-secondary hover:border-cta/40",
+                ? "bg-cta text-white shadow-sm"
+                : "border border-border bg-surface/90 text-muted hover:border-cta/40 hover:text-primary",
             )}
           >
             {formatShortDay(date)}

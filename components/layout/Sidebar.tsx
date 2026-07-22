@@ -21,13 +21,17 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full flex-col border-r border-border bg-surface">
-      <div className="border-b border-border px-6 py-5">
+    <aside className="flex h-full flex-col border-r border-border/70 bg-surface/90 backdrop-blur-md">
+      <div className="border-b border-border/70 px-6 py-5">
         <Link
           href="/"
-          className="text-xl font-bold tracking-tight text-primary"
+          className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-primary"
           onClick={onNavigate}
         >
+          <span
+            className="h-2.5 w-2.5 rounded-full bg-cta shadow-[0_0_0_3px_rgba(249,115,22,0.2)]"
+            aria-hidden
+          />
           {appContent.appName}
         </Link>
         <p className="mt-1 text-xs text-muted">{appContent.tagline}</p>
@@ -44,8 +48,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               className={cn(
                 "block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 cursor-pointer",
                 active
-                  ? "bg-cta/10 text-cta"
-                  : "text-secondary hover:bg-zinc-100 hover:text-primary",
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted hover:bg-primary/5 hover:text-primary",
               )}
             >
               {item.label}
@@ -54,11 +58,11 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border/70 p-4">
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-secondary transition-colors duration-200 hover:bg-zinc-100 hover:text-primary cursor-pointer"
+          className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted transition-colors duration-200 hover:bg-primary/5 hover:text-primary cursor-pointer"
         >
           {appContent.auth.logout}
         </button>

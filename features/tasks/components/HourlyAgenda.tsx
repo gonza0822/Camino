@@ -101,7 +101,7 @@ export function HourlyAgenda({ date, tasks, hours, compact = false }: HourlyAgen
 
   return (
     <>
-      <div className="divide-y divide-border rounded-xl border border-border bg-surface overflow-hidden">
+      <div className="divide-y divide-border/80 overflow-hidden rounded-xl border border-border/80 bg-surface/90 shadow-sm backdrop-blur-sm">
         {hours.map((hour) => {
           const task = taskByHour.get(hour);
           return (
@@ -129,7 +129,7 @@ export function HourlyAgenda({ date, tasks, hours, compact = false }: HourlyAgen
                     "flex min-w-0 flex-1 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors duration-200 cursor-pointer",
                     task.completed
                       ? "border-success/30 bg-success/5 text-muted line-through"
-                      : "border-border bg-zinc-50 hover:border-cta/40",
+                      : "border-border bg-primary/5 hover:border-cta/40",
                   )}
                 >
                   <span

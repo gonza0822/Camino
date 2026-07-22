@@ -7,8 +7,8 @@
 ---
 
 **Project:** Camino
-**Generated:** 2026-07-05 10:13:20
-**Category:** Productivity Tool
+**Generated:** 2026-07-22 18:14:26
+**Category:** SaaS (General)
 
 ---
 
@@ -18,13 +18,16 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#18181B` | `--color-primary` |
-| Secondary | `#3F3F46` | `--color-secondary` |
-| CTA/Accent | `#2563EB` | `--color-cta` |
-| Background | `#FAFAFA` | `--color-background` |
-| Text | `#09090B` | `--color-text` |
+| Primary | `#0D9488` | `--color-primary` |
+| Secondary | `#14B8A6` | `--color-secondary` |
+| CTA/Accent | `#F97316` | `--color-cta` |
+| Background | `#F0FDFA` | `--color-background` |
+| Surface | `#FFFFFF` | `--color-surface` |
+| Border | `#B8DDD8` | `--color-border` |
+| Muted | `#5F8A86` | `--color-muted` |
+| Text | `#134E4A` | `--color-text` |
 
-**Color Notes:** Monochrome + blue accent
+**Color Notes:** Teal focus + action orange. Soft teal ambient gradients on `body` and auth pages. CTA orange for primary actions; teal for brand/nav.
 
 ### Typography
 
@@ -68,7 +71,7 @@
 ```css
 /* Primary Button */
 .btn-primary {
-  background: #2563EB;
+  background: #F97316;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
@@ -85,8 +88,8 @@
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #18181B;
-  border: 2px solid #18181B;
+  color: #0D9488;
+  border: 2px solid #0D9488;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -99,7 +102,7 @@
 
 ```css
 .card {
-  background: #FAFAFA;
+  background: #F0FDFA;
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-md);
@@ -125,9 +128,9 @@
 }
 
 .input:focus {
-  border-color: #18181B;
+  border-color: #0D9488;
   outline: none;
-  box-shadow: 0 0 0 3px #18181B20;
+  box-shadow: 0 0 0 3px #0D948820;
 }
 ```
 
@@ -153,13 +156,13 @@
 
 ## Style Guidelines
 
-**Style:** Flat Design
+**Style:** Glassmorphism
 
-**Keywords:** 2D, minimalist, bold colors, no shadows, clean lines, simple shapes, typography-focused, modern, icon-heavy
+**Keywords:** Frosted glass, transparent, blurred background, layered, vibrant background, light source, depth, multi-layer
 
-**Best For:** Web apps, mobile apps, cross-platform, startup MVPs, user-friendly, SaaS, dashboards, corporate
+**Best For:** Modern SaaS, financial dashboards, high-end corporate, lifestyle apps, modal overlays, navigation
 
-**Key Effects:** No gradients/shadows, simple hover (color/opacity shift), fast loading, clean transitions (150-200ms ease), minimal icons
+**Key Effects:** Backdrop blur (10-20px), subtle border (1px solid rgba white 0.2), light reflection, Z-depth
 
 ### Page Pattern
 
@@ -173,8 +176,8 @@
 
 ## Anti-Patterns (Do NOT Use)
 
-- ❌ Complex onboarding
-- ❌ Slow performance
+- ❌ Excessive animation
+- ❌ Dark mode by default
 
 ### Additional Forbidden Patterns
 

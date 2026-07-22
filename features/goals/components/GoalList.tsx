@@ -78,7 +78,7 @@ export function GoalList({ goals, placeholder, onCreate, onUpdate, onDelete }: G
             <li
               key={goal.id}
               className={cn(
-                "flex items-start gap-3 rounded-lg border border-border bg-surface p-3 transition-colors duration-200",
+                "flex items-start gap-3 rounded-lg border border-border/80 bg-surface/90 p-3 shadow-sm transition-colors duration-200",
                 goal.completed && "bg-success/5",
               )}
             >

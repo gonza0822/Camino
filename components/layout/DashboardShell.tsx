@@ -13,16 +13,18 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen">
       <div className="hidden w-64 shrink-0 lg:block">
-        <Sidebar />
+        <div className="sticky top-0 h-screen">
+          <Sidebar />
+        </div>
       </div>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/40 cursor-pointer"
+            className="absolute inset-0 bg-primary/30 backdrop-blur-sm cursor-pointer"
             aria-label="Cerrar menú"
             onClick={() => setMobileOpen(false)}
           />
@@ -33,11 +35,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-4 border-b border-border bg-surface px-4 py-3 lg:hidden">
+        <header className="flex items-center gap-4 border-b border-border/70 bg-surface/80 px-4 py-3 backdrop-blur-md lg:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            className="rounded-lg p-2 text-primary hover:bg-zinc-100 cursor-pointer"
+            className="rounded-lg p-2 text-primary hover:bg-primary/10 cursor-pointer"
             aria-label="Abrir menú"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -26,7 +26,7 @@ export default async function DashboardPage() {
         title={appContent.dashboard.title}
         subtitle={formatDisplayDate(today)}
       />
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-zinc-100" />}>
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-primary/10" />}>
         <HourlyAgenda date={today} tasks={tasks} hours={hours} />
       </Suspense>
     </>
