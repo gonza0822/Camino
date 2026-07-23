@@ -36,7 +36,7 @@ export function getWeekDateKeys(weekStartKey: string): string[] {
 }
 
 export function formatHourLabel(hour: number): string {
-  return `${String(hour).padStart(2, "0")}:00 – ${String(hour + 1).padStart(2, "0")}:00`;
+  return `${String(hour).padStart(2, "0")}:00`;
 }
 
 export function formatDisplayDate(key: string): string {

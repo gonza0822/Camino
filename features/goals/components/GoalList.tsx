@@ -58,14 +58,15 @@ export function GoalList({ goals, placeholder, onCreate, onUpdate, onDelete }: G
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleCreate} className="flex flex-col gap-2 sm:flex-row">
-        <Input
-          placeholder={placeholder}
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={isPending || !newTitle.trim()} className="shrink-0">
+      <form onSubmit={handleCreate} className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="min-w-0 w-full flex-1">
+          <Input
+            placeholder={placeholder}
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+          />
+        </div>
+        <Button type="submit" disabled={isPending || !newTitle.trim()} className="w-full shrink-0 sm:w-auto">
           {appContent.goals.save}
         </Button>
       </form>
@@ -101,16 +102,17 @@ export function GoalList({ goals, placeholder, onCreate, onUpdate, onDelete }: G
 
               <div className="min-w-0 flex-1">
                 {editingId === goal.id ? (
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <Input
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button size="sm" onClick={() => saveEdit(goal.id)} disabled={isPending}>
+                  <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="min-w-0 w-full flex-1">
+                      <Input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                      />
+                    </div>
+                    <Button size="sm" onClick={() => saveEdit(goal.id)} disabled={isPending} className="shrink-0">
                       {appContent.goals.save}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="shrink-0">
                       {appContent.goals.cancel}
                     </Button>
                   </div>

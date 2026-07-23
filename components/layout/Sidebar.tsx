@@ -11,6 +11,7 @@ const navItems = [
   { href: "/semanal", label: appContent.nav.weekly },
   { href: "/objetivos-mensuales", label: appContent.nav.monthlyGoals },
   { href: "/objetivos-anuales", label: appContent.nav.annualGoals },
+  { href: "/futbol", label: appContent.nav.football },
 ];
 
 interface SidebarProps {

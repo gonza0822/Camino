@@ -55,6 +55,36 @@ export async function createTask(userId: string, input: TaskInput): Promise<Task
   return toTaskDto(task);
 }
 
+// Upserts a slot title, or deletes the slot when the title is empty.
+export async function saveTaskSlot(
+  userId: string,
+  input: { date: string; hour: number; title: string },
+): Promise<TaskDto | null> {
+  await connectMongo();
+  const title = input.title.trim();
+
+  if (!title) {
+    await Task.deleteOne({ userId, date: input.date, hour: input.hour });
+    return null;
+  }
+
+  const task = await Task.findOneAndUpdate(
+    { userId, date: input.date, hour: input.hour },
+    {
+      $set: { title },
+      $setOnInsert: {
+        userId,
+        date: input.date,
+        hour: input.hour,
+        completed: false,
+      },
+    },
+    { upsert: true, new: true },
+  ).lean();
+
+  return task ? toTaskDto(task) : null;
+}
+
 // Updates a task owned by the user.
 export async function updateTask(
   userId: string,

@@ -10,7 +10,7 @@ export function Input({ className, label, error, id, ...props }: InputProps) {
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex w-full min-w-0 flex-col gap-1.5">
       {label && (
         <label htmlFor={inputId} className="text-sm font-medium text-primary">
           {label}
