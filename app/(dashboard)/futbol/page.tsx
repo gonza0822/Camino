@@ -16,10 +16,11 @@ export default async function FootballPage() {
   if (!userId) redirect("/login");
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
       <PageHeader
         title={appContent.football.title}
         subtitle={appContent.football.subtitle}
+        className="mb-3 shrink-0 sm:mb-5"
       />
       <FootballExplorer />
     </div>

@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { appContent } from "@/lib/content/app";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { cn } from "@/lib/utils/cn";
 
 interface DashboardShellProps {
@@ -101,7 +101,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               />
             </svg>
           </button>
-          <span className="font-semibold text-primary">{appContent.appName}</span>
+          <BrandLogo size={28} wordmarkClassName="text-base font-semibold" />
         </header>
 
         <main

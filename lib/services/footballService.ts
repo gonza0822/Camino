@@ -5,6 +5,7 @@ import type {
 } from "@/types/football";
 import type { FootballMatchesQuery } from "@/lib/validators/football";
 import { POPULAR_FOOTBALL_LEAGUES } from "@/features/football/constants";
+import { shiftDateKey, toArgentinaKickoff } from "@/lib/utils/date";
 
 const API_BASE = "https://www.thesportsdb.com/api/v1/json";
 
@@ -43,7 +44,10 @@ interface RawEvent {
   idEvent?: string;
   strEvent?: string;
   dateEvent?: string;
+  dateEventLocal?: string | null;
   strTime?: string | null;
+  strTimeLocal?: string | null;
+  strTimestamp?: string | null;
   strStatus?: string | null;
   strLeague?: string;
   idLeague?: string | null;
@@ -78,11 +82,17 @@ function toMatchDto(event: RawEvent): FootballMatchDto | null {
   if (!event.idEvent || !event.strEvent || !event.dateEvent) return null;
   if (event.strSport && event.strSport !== "Soccer") return null;
 
+  const kickoff = toArgentinaKickoff(
+    event.dateEvent,
+    event.strTime,
+    event.strTimestamp,
+  );
+
   return {
     id: event.idEvent,
     name: event.strEvent,
-    date: event.dateEvent,
-    time: event.strTime ?? null,
+    date: kickoff.date,
+    time: kickoff.time,
     status: event.strStatus ?? null,
     league: event.strLeague ?? "",
     leagueId: event.idLeague ?? null,
@@ -135,14 +145,31 @@ export async function searchFootballMatches(
   }
 
   if (query.date) {
-    const params: Record<string, string> = { d: query.date, s: "Soccer" };
-    if (query.leagueId) params.l = query.leagueId;
-    const data = await fetchJson<{ events?: RawEvent[] | null }>(
-      apiUrl("eventsday.php", params),
+    // Fetch neighboring UTC days so kickoffs that cross midnight still match Argentina date.
+    const dates = [
+      shiftDateKey(query.date, -1),
+      query.date,
+      shiftDateKey(query.date, 1),
+    ];
+    const results = await Promise.all(
+      dates.map(async (day) => {
+        const params: Record<string, string> = { d: day, s: "Soccer" };
+        if (query.leagueId) params.l = query.leagueId;
+        const data = await fetchJson<{ events?: RawEvent[] | null }>(
+          apiUrl("eventsday.php", params),
+        );
+        return data.events ?? [];
+      }),
     );
-    return (data.events ?? [])
-      .map(toMatchDto)
-      .filter((m): m is FootballMatchDto => m !== null);
+
+    const byId = new Map<string, FootballMatchDto>();
+    for (const event of results.flat()) {
+      const match = toMatchDto(event);
+      if (match && match.date === query.date) byId.set(match.id, match);
+    }
+    return Array.from(byId.values()).sort((a, b) =>
+      (a.time ?? "").localeCompare(b.time ?? ""),
+    );
   }
 
   if (query.leagueId) {

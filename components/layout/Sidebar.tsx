@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { appContent } from "@/lib/content/app";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
@@ -24,16 +25,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   return (
     <aside className="flex h-full flex-col border-r border-border/70 bg-surface/90 backdrop-blur-md">
       <div className="border-b border-border/70 px-6 py-5">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-primary"
-          onClick={onNavigate}
-        >
-          <span
-            className="h-2.5 w-2.5 rounded-full bg-cta shadow-[0_0_0_3px_rgba(249,115,22,0.2)]"
-            aria-hidden
-          />
-          {appContent.appName}
+        <Link href="/" className="inline-flex" onClick={onNavigate}>
+          <BrandLogo size={36} wordmarkClassName="text-xl" />
         </Link>
         <p className="mt-1 text-xs text-muted">{appContent.tagline}</p>
       </div>

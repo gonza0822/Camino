@@ -48,15 +48,19 @@ export default async function WeeklyPage({ searchParams }: WeeklyPageProps) {
   const weekLabel = `${formatWeekRange(weekStart, dates[6])}`;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <PageHeader title={appContent.weekly.title} subtitle={weekLabel}>
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
+      <PageHeader
+        title={appContent.weekly.title}
+        subtitle={weekLabel}
+        className="mb-3 sm:mb-5"
+      >
         <Suspense fallback={null}>
           <WeekNavigator weekStart={weekStart} />
         </Suspense>
       </PageHeader>
 
-      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-3 lg:gap-6">
-        <Card className="flex min-h-0 flex-col overflow-hidden p-3 sm:p-4 lg:col-span-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-hidden">
+        <Card className="flex h-[calc(100svh-11rem)] shrink-0 flex-col overflow-hidden p-3 sm:p-4 lg:h-auto lg:min-h-0 lg:flex-1 lg:col-span-2">
           <h2 className="mb-2 shrink-0 text-base font-semibold text-primary">
             {appContent.weekly.agendaTitle}
           </h2>
@@ -72,7 +76,7 @@ export default async function WeeklyPage({ searchParams }: WeeklyPageProps) {
           </Suspense>
         </Card>
 
-        <Card className="flex min-h-0 flex-col overflow-auto p-3 sm:p-4">
+        <Card className="flex shrink-0 flex-col p-3 sm:p-4 lg:min-h-0 lg:overflow-auto">
           <h2 className="mb-2 shrink-0 text-base font-semibold text-primary">
             {appContent.weekly.goalsTitle}
           </h2>

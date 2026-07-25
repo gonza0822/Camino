@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   },
   description:
     "Planificá tu día, tu semana y tus objetivos de forma simple e intuitiva.",
+  icons: {
+    icon: "/brand/logo-camino.png",
+    apple: "/brand/logo-camino.png",
+  },
   openGraph: {
     title: "Camino",
     description:

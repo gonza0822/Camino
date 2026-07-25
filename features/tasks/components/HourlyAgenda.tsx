@@ -165,9 +165,14 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/80 bg-surface/90 shadow-sm backdrop-blur-sm",
+        "flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl border border-border/80 bg-surface/90 shadow-sm backdrop-blur-sm lg:overflow-hidden",
         className,
       )}
+      style={
+        {
+          ["--agenda-row-min" as string]: `calc((100svh - 7.5rem) / ${hours.length})`,
+        } as React.CSSProperties
+      }
     >
       {hours.map((hour) => {
         const slot = slots[hour] ?? { title: "", completed: false };
@@ -175,9 +180,9 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
         return (
           <div
             key={hour}
-            className="flex min-h-0 flex-1 items-center gap-2 border-b border-border/60 px-2 last:border-b-0 sm:gap-3 sm:px-3"
+            className="flex min-h-[var(--agenda-row-min)] shrink-0 items-center gap-2 border-b border-border/60 px-3 last:border-b-0 sm:gap-3 lg:min-h-0 lg:flex-1 lg:shrink"
           >
-            <div className="w-11 shrink-0 font-mono text-[11px] tabular-nums text-muted sm:w-12 sm:text-xs">
+            <div className="w-12 shrink-0 font-mono text-xs tabular-nums text-muted">
               {formatHourLabel(hour)}
             </div>
 

@@ -11,9 +11,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.24",
+    "@ai-sdk/react": "^4.0.40",
     "@auth/mongodb-adapter": "^3.11.2",
     "@reduxjs/toolkit": "^2.12.0",
     "@tanstack/react-table": "^8.21.3",
+    "ai": "^7.0.37",
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "framer-motion": "^12.42.2",
