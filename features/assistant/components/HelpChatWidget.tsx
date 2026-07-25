@@ -4,28 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, isToolUIPart } from "ai";
+import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { appContent } from "@/lib/content/app";
 import { cn } from "@/lib/utils/cn";
 
 // Extracts the plain text of a UI message (text parts only).
-function messageText(parts: Array<{ type: string; text?: string }>): string {
+function messageText(parts: UIMessage["parts"]): string {
   return parts
     .filter((part) => part.type === "text")
-    .map((part) => part.text ?? "")
+    .map((part) => (part.type === "text" ? part.text : ""))
     .join("");
 }
 
 // True when the latest assistant turn finished a tool that mutates the agenda.
-function hasFinishedAgendaTool(
-  parts: Array<{ type: string; state?: string }>,
-): boolean {
-  return parts.some(
-    (part) =>
-      isToolUIPart(part) &&
-      (part.type === "tool-createAgendaTask" || part.type === "tool-listAgendaTasks") &&
-      part.state === "output-available",
-  );
+function hasFinishedAgendaTool(parts: UIMessage["parts"]): boolean {
+  return parts.some((part) => {
+    if (!isToolUIPart(part)) return false;
+    return (
+      (part.type === "tool-createAgendaTask" ||
+        part.type === "tool-listAgendaTasks") &&
+      part.state === "output-available"
+    );
+  });
 }
 
 export function HelpChatWidget() {
