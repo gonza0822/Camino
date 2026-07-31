@@ -16,7 +16,8 @@ Camino se empaqueta como app de escritorio con **Electron**. Next.js sigue siend
 ## Cómo funciona
 
 - En **dev**: `npm run electron:dev` abre Electron contra `AUTH_URL` / `http://localhost:3000` (correr `npm run dev` en paralelo).
-- En **prod empaquetada**: la ventana carga `CAMINO_APP_URL` (URL de Vercel / `AUTH_URL`).
+- En **prod empaquetada**: la ventana carga `CAMINO_APP_URL` (URL de Vercel). **Nunca** empaquetar con `localhost`.
+- Build: `$env:CAMINO_APP_URL="https://tu-app.vercel.app"; npm run electron:build` y subir el nuevo `.exe` al Release.
 - `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. Enlaces externos → `shell.openExternal`.
 
 ## Build y descarga

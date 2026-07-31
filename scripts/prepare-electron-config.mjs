@@ -30,7 +30,16 @@ const appUrl =
   process.env.AUTH_URL ||
   envFile.CAMINO_APP_URL ||
   envFile.AUTH_URL ||
-  "http://localhost:3000";
+  "";
+
+if (!appUrl || /localhost|127\.0\.0\.1/i.test(appUrl)) {
+  console.error(
+    "[electron] Refusing to package with a localhost URL.\n" +
+      "Set CAMINO_APP_URL (or AUTH_URL) to your Vercel URL, e.g.:\n" +
+      '  $env:CAMINO_APP_URL="https://tu-proyecto.vercel.app"; npm run electron:build',
+  );
+  process.exit(1);
+}
 
 const target = resolve(process.cwd(), "electron", "app-config.json");
 writeFileSync(target, `${JSON.stringify({ appUrl }, null, 2)}\n`, "utf8");
