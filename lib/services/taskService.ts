@@ -10,6 +10,7 @@ function toTaskDto(doc: {
   hour: number;
   title: string;
   completed: boolean;
+  completedAt?: Date | null;
 }): TaskDto {
   return {
     id: doc._id.toString(),
@@ -17,6 +18,7 @@ function toTaskDto(doc: {
     hour: doc.hour,
     title: doc.title,
     completed: doc.completed,
+    completedAt: doc.completedAt ? doc.completedAt.toISOString() : null,
   };
 }
 
@@ -79,7 +81,31 @@ export async function saveTaskSlot(
         completed: false,
       },
     },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: "after" },
+  ).lean();
+
+  if (!task) {
+    throw new Error("TASK_UPSERT_FAILED");
+  }
+
+  return toTaskDto(task);
+}
+
+// Updates completion for a slot identified by date + hour (no client id required).
+export async function setTaskCompletedBySlot(
+  userId: string,
+  input: { date: string; hour: number; completed: boolean },
+): Promise<TaskDto | null> {
+  await connectMongo();
+  const task = await Task.findOneAndUpdate(
+    { userId, date: input.date, hour: input.hour },
+    {
+      $set: {
+        completed: input.completed,
+        completedAt: input.completed ? new Date() : null,
+      },
+    },
+    { returnDocument: "after" },
   ).lean();
 
   return task ? toTaskDto(task) : null;
@@ -94,10 +120,14 @@ export async function updateTask(
   await connectMongo();
   if (!Types.ObjectId.isValid(taskId)) return null;
 
+  const setFields: Record<string, unknown> = { ...data };
+  if (data.completed === true) setFields.completedAt = new Date();
+  if (data.completed === false) setFields.completedAt = null;
+
   const task = await Task.findOneAndUpdate(
     { _id: taskId, userId },
-    { $set: data },
-    { new: true },
+    { $set: setFields },
+    { returnDocument: "after" },
   ).lean();
 
   return task ? toTaskDto(task) : null;

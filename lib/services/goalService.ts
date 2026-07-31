@@ -87,7 +87,7 @@ export async function updateWeeklyGoal(
   const goal = await WeeklyGoal.findOneAndUpdate(
     { _id: goalId, userId },
     { $set: data },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
   return goal ? toWeeklyDto(goal) : null;
 }
@@ -133,7 +133,7 @@ export async function updateMonthlyGoal(
   const goal = await MonthlyGoal.findOneAndUpdate(
     { _id: goalId, userId },
     { $set: data },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
   return goal ? toMonthlyDto(goal) : null;
 }
@@ -177,7 +177,7 @@ export async function updateAnnualGoal(
   const goal = await AnnualGoal.findOneAndUpdate(
     { _id: goalId, userId },
     { $set: data },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
   return goal ? toAnnualDto(goal) : null;
 }

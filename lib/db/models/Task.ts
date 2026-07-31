@@ -7,6 +7,7 @@ const taskSchema = new Schema(
     hour: { type: Number, required: true, min: 0, max: 23 },
     title: { type: String, required: true, trim: true, maxlength: 200 },
     completed: { type: Boolean, default: false },
+    completedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

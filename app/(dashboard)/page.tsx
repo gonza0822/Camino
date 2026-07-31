@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { appContent } from "@/lib/content/app";
 import { getSessionUserId } from "@/lib/auth/session";
 import { getTasksByDate } from "@/lib/services/taskService";
+import { getDailyNote } from "@/lib/services/dailyNoteService";
 import { searchFootballMatches } from "@/lib/services/footballService";
 import { getTodayKey, formatDisplayDate, getHourRange } from "@/lib/utils/date";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { HourlyAgenda } from "@/features/tasks/components/HourlyAgenda";
+import { TodayDashboardColumn } from "@/features/notes/components/TodayDashboardColumn";
 import { TodayMatchesSidebar } from "@/features/football/components/TodayMatchesSidebar";
 import type { FootballMatchDto } from "@/types/football";
 
@@ -22,27 +21,21 @@ export default async function DashboardPage() {
   const today = getTodayKey();
   const hours = getHourRange();
 
-  const [tasks, matchesResult] = await Promise.all([
+  const [tasks, note, matchesResult] = await Promise.all([
     getTasksByDate(userId, today),
+    getDailyNote(userId, today),
     loadTodayMatches(today),
   ]);
 
   return (
     <div className="-mx-4 -my-4 flex h-[calc(100svh-3.5rem)] min-h-0 flex-1 flex-col overflow-hidden sm:-mx-6 lg:h-auto lg:-mx-8 lg:-my-5 lg:flex-row">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-3 sm:px-6 lg:px-8 lg:py-5">
-        <PageHeader
-          title={appContent.dashboard.title}
-          subtitle={formatDisplayDate(today)}
-          className="mb-2 sm:mb-5"
-        />
-        <Suspense
-          fallback={
-            <div className="min-h-0 flex-1 animate-pulse rounded-xl bg-primary/10" />
-          }
-        >
-          <HourlyAgenda date={today} tasks={tasks} hours={hours} />
-        </Suspense>
-      </div>
+      <TodayDashboardColumn
+        date={today}
+        displayDate={formatDisplayDate(today)}
+        tasks={tasks}
+        hours={hours}
+        noteContent={note.content}
+      />
 
       <TodayMatchesSidebar
         matches={matchesResult.matches}

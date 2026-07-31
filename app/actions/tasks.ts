@@ -8,6 +8,7 @@ import {
   updateTask,
   deleteTask,
   saveTaskSlot,
+  setTaskCompletedBySlot,
 } from "@/lib/services/taskService";
 import { taskSchema, taskUpdateSchema } from "@/lib/validators/tasks";
 
@@ -15,6 +16,12 @@ const slotSaveSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   hour: z.number().int().min(0).max(23),
   title: z.string().max(200),
+});
+
+const slotCompleteSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  hour: z.number().int().min(0).max(23),
+  completed: z.boolean(),
 });
 
 // Creates a task in an hourly slot.
@@ -46,8 +53,10 @@ export async function saveTaskSlotAction(input: unknown) {
     const task = await saveTaskSlot(userId, parsed.data);
     revalidatePath("/");
     revalidatePath("/semanal");
+    revalidatePath("/calendario");
     return { success: true, task };
-  } catch {
+  } catch (error) {
+    console.error("[saveTaskSlotAction]", error);
     return { error: "Server error" };
   }
 }
@@ -63,6 +72,22 @@ export async function updateTaskAction(taskId: string, input: unknown) {
 
   revalidatePath("/");
   revalidatePath("/semanal");
+  revalidatePath("/calendario");
+  return { success: true, task };
+}
+
+// Toggles completion for an agenda slot by date + hour.
+export async function setTaskCompletedAction(input: unknown) {
+  const userId = await requireUserId();
+  const parsed = slotCompleteSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid input" };
+
+  const task = await setTaskCompletedBySlot(userId, parsed.data);
+  if (!task) return { error: "Not found" };
+
+  revalidatePath("/");
+  revalidatePath("/semanal");
+  revalidatePath("/calendario");
   return { success: true, task };
 }
 
@@ -74,5 +99,6 @@ export async function deleteTaskAction(taskId: string) {
 
   revalidatePath("/");
   revalidatePath("/semanal");
+  revalidatePath("/calendario");
   return { success: true };
 }

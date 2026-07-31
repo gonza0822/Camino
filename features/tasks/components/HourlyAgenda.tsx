@@ -5,7 +5,7 @@ import { appContent } from "@/lib/content/app";
 import { formatHourLabel } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
 import type { TaskDto } from "@/types/app";
-import { saveTaskSlotAction, updateTaskAction } from "@/app/actions/tasks";
+import { saveTaskSlotAction, setTaskCompletedAction } from "@/app/actions/tasks";
 
 interface SlotState {
   id?: string;
@@ -18,6 +18,8 @@ interface HourlyAgendaProps {
   tasks: TaskDto[];
   hours: number[];
   className?: string;
+  /** Shrinks row min-height and scroll padding (no layout padding — avoids a gap under the last hour). */
+  bottomInsetPx?: number;
 }
 
 const SAVE_DEBOUNCE_MS = 700;
@@ -39,9 +41,16 @@ function slotsFromTasks(tasks: TaskDto[], hours: number[]): Record<number, SlotS
   );
 }
 
-export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProps) {
+export function HourlyAgenda({
+  date,
+  tasks,
+  hours,
+  className,
+  bottomInsetPx = 0,
+}: HourlyAgendaProps) {
   const [slots, setSlots] = useState(() => slotsFromTasks(tasks, hours));
   const dirtyRef = useRef<Set<number>>(new Set());
+  const pendingCompleteRef = useRef<Set<number>>(new Set());
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
   const latestRef = useRef(slots);
   const [, startTransition] = useTransition();
@@ -50,6 +59,7 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
 
   useEffect(() => {
     dirtyRef.current.clear();
+    pendingCompleteRef.current.clear();
     setSlots(slotsFromTasks(tasks, hours));
   }, [date, hours]);
 
@@ -58,7 +68,7 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
       const next = { ...prev };
       const byHour = new Map(tasks.map((t) => [t.hour, t]));
       for (const hour of hours) {
-        if (dirtyRef.current.has(hour)) continue;
+        if (dirtyRef.current.has(hour) || pendingCompleteRef.current.has(hour)) continue;
         const task = byHour.get(hour);
         next[hour] = {
           id: task?.id,
@@ -95,12 +105,20 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
         if ((latestRef.current[hour]?.title ?? "") !== titleAtSave) return;
 
         dirtyRef.current.delete(hour);
+
+        // Keep local title if the upsert didn't return a document (should be rare).
+        if (!result.task) return;
+
+        const savedTask = result.task;
         setSlots((prev) => ({
           ...prev,
           [hour]: {
-            id: result.task?.id,
-            title: result.task?.title ?? "",
-            completed: result.task?.completed ?? false,
+            id: savedTask.id,
+            title: savedTask.title,
+            // Preserve in-flight completion toggles over the save response.
+            completed: pendingCompleteRef.current.has(hour)
+              ? (prev[hour]?.completed ?? savedTask.completed)
+              : savedTask.completed,
           },
         }));
       });
@@ -142,22 +160,69 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
   }
 
   function toggleComplete(hour: number) {
-    const slot = slots[hour];
-    if (!slot?.id) return;
+    const slot = latestRef.current[hour];
+    if (!slot?.title.trim()) return;
 
     const nextCompleted = !slot.completed;
+    pendingCompleteRef.current.add(hour);
+    dirtyRef.current.add(hour);
     setSlots((prev) => ({
       ...prev,
       [hour]: { ...prev[hour], completed: nextCompleted },
     }));
 
     startTransition(async () => {
-      const result = await updateTaskAction(slot.id!, { completed: nextCompleted });
-      if (result.error || !result.task) {
+      try {
+        let taskId = latestRef.current[hour]?.id;
+        if (!taskId) {
+          const saved = await saveTaskSlotAction({
+            date,
+            hour,
+            title: slot.title,
+          });
+          if (saved.error || !saved.task) {
+            setSlots((prev) => ({
+              ...prev,
+              [hour]: { ...prev[hour], completed: slot.completed },
+            }));
+            return;
+          }
+          const savedTask = saved.task;
+          taskId = savedTask.id;
+          setSlots((prev) => ({
+            ...prev,
+            [hour]: {
+              id: savedTask.id,
+              title: savedTask.title,
+              completed: nextCompleted,
+            },
+          }));
+        }
+
+        const result = await setTaskCompletedAction({
+          date,
+          hour,
+          completed: nextCompleted,
+        });
+        if (result.error || !result.task) {
+          setSlots((prev) => ({
+            ...prev,
+            [hour]: { ...prev[hour], completed: slot.completed },
+          }));
+          return;
+        }
+
+        dirtyRef.current.delete(hour);
         setSlots((prev) => ({
           ...prev,
-          [hour]: { ...prev[hour], completed: slot.completed },
+          [hour]: {
+            id: result.task.id,
+            title: result.task.title,
+            completed: result.task.completed,
+          },
         }));
+      } finally {
+        pendingCompleteRef.current.delete(hour);
       }
     });
   }
@@ -170,7 +235,8 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
       )}
       style={
         {
-          ["--agenda-row-min" as string]: `calc((100svh - 7.5rem) / ${hours.length})`,
+          ["--agenda-row-min" as string]: `calc((100svh - 7.5rem - ${bottomInsetPx}px) / ${hours.length})`,
+          scrollPaddingBottom: bottomInsetPx > 0 ? bottomInsetPx : undefined,
         } as React.CSSProperties
       }
     >
@@ -189,8 +255,9 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
             {(slot.title.trim() || slot.id) && (
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => toggleComplete(hour)}
-                disabled={!slot.id}
+                disabled={!slot.title.trim() && !slot.id}
                 aria-checked={slot.completed}
                 role="checkbox"
                 aria-label={
@@ -200,7 +267,9 @@ export function HourlyAgenda({ date, tasks, hours, className }: HourlyAgendaProp
                 }
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200",
-                  slot.id ? "cursor-pointer" : "cursor-default opacity-40",
+                  slot.title.trim() || slot.id
+                    ? "cursor-pointer"
+                    : "cursor-default opacity-40",
                   slot.completed
                     ? "border-success bg-success text-white"
                     : "border-border hover:border-primary",

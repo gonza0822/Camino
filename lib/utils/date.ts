@@ -37,6 +37,23 @@ export function parseDateKey(key: string): Date {
   return new Date(y, m - 1, d);
 }
 
+/** Year and month (1–12) in Argentina timezone. */
+export function getArgentinaYearMonth(date = new Date()): { year: number; month: number } {
+  const key = toDateKeyInTimeZone(date, "America/Argentina/Buenos_Aires");
+  const [year, month] = key.split("-").map(Number);
+  return { year, month };
+}
+
+/** All YYYY-MM-DD keys for a calendar month. */
+export function getMonthDateKeys(year: number, month: number): string[] {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const m = String(month).padStart(2, "0");
+  return Array.from({ length: daysInMonth }, (_, i) => {
+    const d = String(i + 1).padStart(2, "0");
+    return `${year}-${m}-${d}`;
+  });
+}
+
 export function getMonday(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
@@ -110,6 +127,59 @@ export function matchTimeToAgendaHour(time: string | null): number {
 }
 
 const ARGENTINA_TZ = "America/Argentina/Buenos_Aires";
+
+/** Monday-first weekday labels (short, es-AR). */
+export const WEEKDAY_LABELS_SHORT = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"] as const;
+
+/** Builds a month grid (weeks × 7) with YYYY-MM-DD keys or null for padding cells. */
+export function getMonthCalendarGrid(year: number, month: number): (string | null)[][] {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+  const startOffset = firstWeekday === 0 ? 6 : firstWeekday - 1;
+  const monthKey = String(month).padStart(2, "0");
+
+  const flat: (string | null)[] = [];
+  for (let i = 0; i < startOffset; i++) flat.push(null);
+  for (let day = 1; day <= daysInMonth; day++) {
+    flat.push(`${year}-${monthKey}-${String(day).padStart(2, "0")}`);
+  }
+  while (flat.length % 7 !== 0) flat.push(null);
+
+  const weeks: (string | null)[][] = [];
+  for (let i = 0; i < flat.length; i += 7) {
+    weeks.push(flat.slice(i, i + 7));
+  }
+  return weeks;
+}
+
+/** Formats an instant as HH:mm in Argentina. */
+export function formatTimeInArgentina(iso: string | Date): string {
+  const date = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleTimeString("es-AR", {
+    timeZone: ARGENTINA_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+}
+
+export function formatDisplayDateLong(key: string): string {
+  const date = parseDateKey(key);
+  return date.toLocaleDateString("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export function isValidDateKey(key: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return false;
+  const [y, m, d] = key.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}
 
 /** Normalizes HH:mm or HH:mm:ss into HH:mm:ss for Date parsing. */
 function normalizeClock(time: string): string | null {

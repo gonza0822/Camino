@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Arquitectura del proyecto (obligatoria)
 
-Stack fijo: **Next.js (App Router)**, **React**, **TypeScript**, **Tailwind CSS**, **MongoDB**, **Redux Toolkit**, **Framer Motion**, **Chart.js**, **TanStack Table**. Deploy **Vercel**; imágenes con **`next/image`** y assets estáticos en **`public/`**.
+Stack fijo: **Next.js (App Router)**, **React**, **TypeScript**, **Tailwind CSS**, **MongoDB**, **Redux Toolkit**, **Framer Motion**, **Recharts**, **TanStack Table**, **dnd-kit**. Deploy **Vercel**; imágenes con **`next/image`** y assets estáticos en **`public/`**.
 
 ## Sin backend separado
 
@@ -60,7 +60,7 @@ Page (Server Component)
 ## Server vs Client Components
 
 - Por defecto: **Server Components**.
-- **`"use client"`** solo para: Redux, Framer Motion, Chart.js, TanStack Table, estado local complejo, listeners del navegador.
+- **`"use client"`** solo para: Redux, Framer Motion, Recharts, TanStack Table, dnd-kit, estado local complejo, listeners del navegador.
 - Extraer subcomponentes cliente en archivos dedicados si la página mezcla servidor + cliente.
 
 ## Redux

@@ -1,0 +1,4 @@
+// Calendar page shell: fills dashboard height; year grid scrolls inside.
+export default function CalendarLayout({ children }: { children: React.ReactNode }) {
+  return <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>;
+}

@@ -4,6 +4,7 @@ export interface TaskDto {
   hour: number;
   title: string;
   completed: boolean;
+  completedAt: string | null;
 }
 
 export interface GoalDto {

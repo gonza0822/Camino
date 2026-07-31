@@ -12,6 +12,8 @@ const navItems = [
   { href: "/semanal", label: appContent.nav.weekly },
   { href: "/objetivos-mensuales", label: appContent.nav.monthlyGoals },
   { href: "/objetivos-anuales", label: appContent.nav.annualGoals },
+  { href: "/estadisticas", label: appContent.nav.statistics },
+  { href: "/calendario", label: appContent.nav.calendar },
   { href: "/futbol", label: appContent.nav.football },
 ];
 
