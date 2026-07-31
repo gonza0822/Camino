@@ -1,0 +1,5 @@
+# Keep this folder for the Windows installer served by the download button.
+# After `npm run electron:build`, copy:
+#   dist/desktop/Camino-Setup.exe  →  public/downloads/Camino-Setup.exe
+#
+# Or set NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL to a GitHub Release / CDN URL.

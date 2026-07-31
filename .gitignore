@@ -26,6 +26,12 @@ after-complete.yml
 
 # production
 /build
+/dist
+/dist/desktop
+
+# electron
+*.exe
+!public/downloads/.gitkeep
 
 # misc
 .DS_Store

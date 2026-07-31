@@ -2,13 +2,18 @@
   "name": "camino",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "node --dns-result-order=ipv4first ./node_modules/next/dist/bin/next dev",
     "test:db": "node --dns-result-order=ipv4first scripts/test-db.mjs",
     "db:find-primary": "node --dns-result-order=ipv4first scripts/find-primary.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "electron:dev": "electron .",
+    "electron:prepare": "node scripts/prepare-electron-config.mjs",
+    "electron:build": "node scripts/prepare-electron-config.mjs && electron-builder --win",
+    "electron:build:dir": "node scripts/prepare-electron-config.mjs && electron-builder --win --dir"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.24",
@@ -38,9 +43,42 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "build": {
+    "appId": "com.camino.app",
+    "productName": "Camino",
+    "directories": {
+      "output": "dist/desktop"
+    },
+    "files": [
+      "electron/**/*",
+      "public/brand/logo-camino.png",
+      "package.json"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/brand/logo-camino.png",
+      "artifactName": "Camino-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Camino"
+    }
   }
 }

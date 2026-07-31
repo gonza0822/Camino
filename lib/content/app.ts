@@ -174,4 +174,9 @@ export const appContent = {
     legendToday: "Hoy",
     closeDayDetail: "Cerrar detalle del día",
   },
+  desktop: {
+    downloadButton: "Descargar app",
+    downloadAria: "Descargar Camino para escritorio (Windows)",
+    downloadHint: "Instalador de escritorio para Windows",
+  },
 } as const;

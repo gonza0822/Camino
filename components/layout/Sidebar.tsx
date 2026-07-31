@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { appContent } from "@/lib/content/app";
+import { DesktopDownloadButton } from "@/features/desktop/components/DesktopDownloadButton";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { cn } from "@/lib/utils/cn";
 
@@ -54,7 +55,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t border-border/70 p-4">
+      <div className="space-y-2 border-t border-border/70 p-4">
+        <DesktopDownloadButton onNavigate={onNavigate} />
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/login" })}
