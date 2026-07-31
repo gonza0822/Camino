@@ -26,8 +26,10 @@ npm run electron:build
 ```
 
 - Salida en **`dist/desktop/`** (NSIS `.exe` en Windows, etc.).
-- Copiar el instalador a **`public/downloads/`** (o publicar en GitHub Releases) para el botón de descarga de la UI.
-- URL pública: `NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL` o fallback `/downloads/Camino-Setup.exe`.
+- **No** subir el `.exe` a `public/` ni a Vercel (peso ~150MB + `*.exe` en `.gitignore`).
+- Publicar el instalador en **GitHub Releases** (o CDN) y definir en Vercel:
+  `NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL=https://github.com/<user>/<repo>/releases/download/vX.Y.Z/Camino-Setup.exe`
+- El botón del sidebar usa solo esa URL pública.
 
 ## UI
 

@@ -13,17 +13,16 @@ declare global {
   }
 }
 
-function resolveDownloadUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL?.trim() ||
-    "/downloads/Camino-Setup.exe"
-  );
+function resolveDownloadUrl(): string | null {
+  const url = process.env.NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL?.trim();
+  return url || null;
 }
 
 // Sidebar CTA to download the Electron desktop installer (hidden inside the desktop shell).
 export function DesktopDownloadButton({ onNavigate }: { onNavigate?: () => void }) {
   const copy = appContent.desktop;
   const [isDesktopShell, setIsDesktopShell] = useState(false);
+  const downloadUrl = resolveDownloadUrl();
 
   useEffect(() => {
     setIsDesktopShell(Boolean(window.caminoDesktop?.isDesktop));
@@ -31,10 +30,19 @@ export function DesktopDownloadButton({ onNavigate }: { onNavigate?: () => void 
 
   if (isDesktopShell) return null;
 
+  if (!downloadUrl) {
+    return (
+      <p className="px-1 text-center text-[11px] leading-snug text-muted" role="status">
+        {copy.downloadUnavailable}
+      </p>
+    );
+  }
+
   return (
     <a
-      href={resolveDownloadUrl()}
-      download
+      href={downloadUrl}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={onNavigate}
       aria-label={copy.downloadAria}
       className={cn(

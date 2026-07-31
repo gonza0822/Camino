@@ -178,5 +178,7 @@ export const appContent = {
     downloadButton: "Descargar app",
     downloadAria: "Descargar Camino para escritorio (Windows)",
     downloadHint: "Instalador de escritorio para Windows",
+    downloadUnavailable:
+      "La descarga de escritorio se publica en GitHub Releases (configurá NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL).",
   },
 } as const;
