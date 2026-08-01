@@ -35,6 +35,12 @@ if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          // Always show the account picker (needed in Capacitor WebView after first login).
+          prompt: "select_account",
+        },
+      },
     }),
   );
 }
