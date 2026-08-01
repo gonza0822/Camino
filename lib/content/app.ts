@@ -176,9 +176,17 @@ export const appContent = {
   },
   desktop: {
     downloadButton: "Descargar app",
+    downloadButtonAndroid: "Descargar app Android",
+    downloadButtonIos: "Descargar app iOS",
     downloadAria: "Descargar Camino para escritorio (Windows)",
+    downloadAriaAndroid: "Descargar Camino para Android",
+    downloadAriaIos: "Descargar Camino para iPhone o iPad",
     downloadHint: "Instalador de escritorio para Windows",
     downloadUnavailable:
       "La descarga de escritorio se publica en GitHub Releases (configurá NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL).",
+    downloadUnavailableAndroid:
+      "La app Android aún no está publicada (configurá NEXT_PUBLIC_ANDROID_DOWNLOAD_URL).",
+    downloadUnavailableIos:
+      "La app iOS aún no está publicada (configurá NEXT_PUBLIC_IOS_DOWNLOAD_URL).",
   },
 } as const;

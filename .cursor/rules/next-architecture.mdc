@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Arquitectura del proyecto (obligatoria)
 
-Stack fijo: **Next.js (App Router)**, **React**, **TypeScript**, **Tailwind CSS**, **MongoDB**, **Redux Toolkit**, **Framer Motion**, **Recharts**, **TanStack Table**, **dnd-kit**. Escritorio: **Electron** (shell; ver `electron-desktop.mdc`). Deploy web **Vercel**; imágenes con **`next/image`** y assets estáticos en **`public/`**.
+Stack fijo: **Next.js (App Router)**, **React**, **TypeScript**, **Tailwind CSS**, **MongoDB**, **Redux Toolkit**, **Framer Motion**, **Recharts**, **TanStack Table**, **dnd-kit**. Escritorio: **Electron**. Móvil: **Capacitor** (Android/iOS; ver `capacitor-mobile.mdc`). Deploy web **Vercel**; imágenes con **`next/image`** y assets estáticos en **`public/`**.
 
 ## Sin backend separado
 

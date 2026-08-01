@@ -30,7 +30,7 @@ npm run electron:build
 - **No** subir el `.exe` a `public/` ni a Vercel (peso ~150MB + `*.exe` en `.gitignore`).
 - Publicar el instalador en **GitHub Releases** (o CDN) y definir en Vercel:
   `NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL=https://github.com/<user>/<repo>/releases/download/vX.Y.Z/Camino-Setup.exe`
-- El botón del sidebar usa solo esa URL pública.
+- El botón del sidebar (`AppDownloadButton`) elige Electron / Android / iOS según el dispositivo.
 
 ## UI
 

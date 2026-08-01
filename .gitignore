@@ -33,6 +33,18 @@ after-complete.yml
 *.exe
 !public/downloads/.gitkeep
 
+# capacitor / mobile
+/android/.gradle
+/android/app/build
+/android/build
+/android/captures
+/android/local.properties
+/ios/App/Pods
+/ios/DerivedData
+*.apk
+*.aab
+*.ipa
+
 # misc
 .DS_Store
 *.pem
