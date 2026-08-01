@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { appContent } from "@/lib/content/app";
+import { signInWithGoogle } from "@/features/auth/lib/signInWithGoogle";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
@@ -105,7 +106,7 @@ export function RegisterForm() {
         type="button"
         variant="secondary"
         className="w-full"
-        onClick={() => signIn("google", { callbackUrl: "/" })}
+        onClick={() => void signInWithGoogle("/")}
       >
         {appContent.auth.googleButton}
       </Button>
