@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { saveDailyNoteAction } from "@/app/actions/dailyNotes";
+import { useCallback, useRef, useState } from "react";
 import { appContent } from "@/lib/content/app";
 import {
   TODAY_NOTES_PANEL_HEADER_PX,
@@ -9,9 +8,8 @@ import {
   TODAY_NOTES_PANEL_HIDE_THRESHOLD,
 } from "@/features/notes/notesPanelLayout";
 import type { TodayNotesPanelLayout } from "@/features/notes/notesPanelLayout";
+import { useAutosavedDailyNote } from "@/features/notes/hooks/useAutosavedDailyNote";
 import { cn } from "@/lib/utils/cn";
-
-const SAVE_DEBOUNCE_MS = 700;
 
 interface TodayNotesPanelProps {
   date: string;
@@ -30,57 +28,10 @@ export function TodayNotesPanel({
   onHeightChange,
 }: TodayNotesPanelProps) {
   const copy = appContent.dashboard.notes;
-  const [content, setContent] = useState(initialContent);
+  const { content, handleChange, flushSave } = useAutosavedDailyNote(date, initialContent);
   const [isResizing, setIsResizing] = useState(false);
   const [previewHeight, setPreviewHeight] = useState<number | null>(null);
-  const dirtyRef = useRef(false);
-  const latestRef = useRef(content);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resizeRef = useRef<{ startY: number; startHeight: number } | null>(null);
-  const [, startTransition] = useTransition();
-
-  latestRef.current = content;
-
-  useEffect(() => {
-    setContent(initialContent);
-    dirtyRef.current = false;
-  }, [date, initialContent]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  const persistNote = useCallback(() => {
-    const text = latestRef.current;
-    startTransition(async () => {
-      await saveDailyNoteAction({ date, content: text });
-      dirtyRef.current = false;
-    });
-  }, [date]);
-
-  const scheduleSave = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      timerRef.current = null;
-      persistNote();
-    }, SAVE_DEBOUNCE_MS);
-  }, [persistNote]);
-
-  const handleChange = (value: string) => {
-    dirtyRef.current = true;
-    setContent(value);
-    scheduleSave();
-  };
-
-  const handleBlur = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    if (dirtyRef.current) persistNote();
-  };
 
   const applyResizeDelta = useCallback(
     (clientY: number) => {
@@ -219,7 +170,7 @@ export function TodayNotesPanel({
           <textarea
             value={content}
             onChange={(event) => handleChange(event.target.value)}
-            onBlur={handleBlur}
+            onBlur={flushSave}
             placeholder={copy.placeholder}
             maxLength={10000}
             className={cn(

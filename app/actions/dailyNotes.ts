@@ -13,7 +13,7 @@ export async function saveDailyNoteAction(input: unknown) {
 
   try {
     const note = await saveDailyNote(userId, parsed.data);
-    revalidatePath("/");
+    // Avoid revalidating "/" during typing — it remounts server props and fights the textarea.
     revalidatePath("/calendario");
     return { success: true, note };
   } catch {

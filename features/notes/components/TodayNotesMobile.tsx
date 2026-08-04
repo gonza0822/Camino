@@ -1,12 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { saveDailyNoteAction } from "@/app/actions/dailyNotes";
 import { appContent } from "@/lib/content/app";
+import { useAutosavedDailyNote } from "@/features/notes/hooks/useAutosavedDailyNote";
 import { cn } from "@/lib/utils/cn";
-
-const SAVE_DEBOUNCE_MS = 700;
 
 interface TodayNotesMobileProps {
   date: string;
@@ -18,25 +16,8 @@ export function TodayNotesMobile({ date, initialContent }: TodayNotesMobileProps
   const copy = appContent.dashboard.notes;
   const reduceMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
-  const [content, setContent] = useState(initialContent);
-  const dirtyRef = useRef(false);
-  const latestRef = useRef(content);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [, startTransition] = useTransition();
-
-  latestRef.current = content;
+  const { content, handleChange, flushSave } = useAutosavedDailyNote(date, initialContent);
   const hasNote = content.trim().length > 0;
-
-  useEffect(() => {
-    setContent(initialContent);
-    dirtyRef.current = false;
-  }, [date, initialContent]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -52,34 +33,8 @@ export function TodayNotesMobile({ date, initialContent }: TodayNotesMobileProps
     };
   }, [open]);
 
-  const persistNote = useCallback(() => {
-    const text = latestRef.current;
-    startTransition(async () => {
-      await saveDailyNoteAction({ date, content: text });
-      dirtyRef.current = false;
-    });
-  }, [date]);
-
-  const scheduleSave = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      timerRef.current = null;
-      persistNote();
-    }, SAVE_DEBOUNCE_MS);
-  }, [persistNote]);
-
-  const handleChange = (value: string) => {
-    dirtyRef.current = true;
-    setContent(value);
-    scheduleSave();
-  };
-
   const handleClose = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    if (dirtyRef.current) persistNote();
+    flushSave();
     setOpen(false);
   };
 
@@ -171,9 +126,7 @@ export function TodayNotesMobile({ date, initialContent }: TodayNotesMobileProps
                 <textarea
                   value={content}
                   onChange={(event) => handleChange(event.target.value)}
-                  onBlur={() => {
-                    if (dirtyRef.current) persistNote();
-                  }}
+                  onBlur={flushSave}
                   placeholder={copy.placeholder}
                   maxLength={10000}
                   autoFocus

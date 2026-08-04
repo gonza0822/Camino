@@ -22,7 +22,7 @@ interface HourlyAgendaProps {
   bottomInsetPx?: number;
 }
 
-const SAVE_DEBOUNCE_MS = 700;
+const SAVE_DEBOUNCE_MS = 900;
 
 function slotsFromTasks(tasks: TaskDto[], hours: number[]): Record<number, SlotState> {
   const byHour = new Map(tasks.map((t) => [t.hour, t]));
@@ -106,21 +106,28 @@ export function HourlyAgenda({
 
         dirtyRef.current.delete(hour);
 
-        // Keep local title if the upsert didn't return a document (should be rare).
-        if (!result.task) return;
+        // Only sync server id/completion — never replace the in-progress input text.
+        setSlots((prev) => {
+          const localTitle = prev[hour]?.title ?? "";
+          if (!result.task) {
+            if (localTitle.trim()) return prev;
+            return {
+              ...prev,
+              [hour]: { title: "", completed: false },
+            };
+          }
 
-        const savedTask = result.task;
-        setSlots((prev) => ({
-          ...prev,
-          [hour]: {
-            id: savedTask.id,
-            title: savedTask.title,
-            // Preserve in-flight completion toggles over the save response.
-            completed: pendingCompleteRef.current.has(hour)
-              ? (prev[hour]?.completed ?? savedTask.completed)
-              : savedTask.completed,
-          },
-        }));
+          return {
+            ...prev,
+            [hour]: {
+              id: result.task.id,
+              title: localTitle,
+              completed: pendingCompleteRef.current.has(hour)
+                ? (prev[hour]?.completed ?? result.task.completed)
+                : result.task.completed,
+            },
+          };
+        });
       });
     },
     [date],
@@ -193,7 +200,7 @@ export function HourlyAgenda({
             ...prev,
             [hour]: {
               id: savedTask.id,
-              title: savedTask.title,
+              title: prev[hour]?.title ?? savedTask.title,
               completed: nextCompleted,
             },
           }));
@@ -217,7 +224,7 @@ export function HourlyAgenda({
           ...prev,
           [hour]: {
             id: result.task.id,
-            title: result.task.title,
+            title: prev[hour]?.title ?? result.task.title,
             completed: result.task.completed,
           },
         }));

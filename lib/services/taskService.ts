@@ -63,9 +63,9 @@ export async function saveTaskSlot(
   input: { date: string; hour: number; title: string },
 ): Promise<TaskDto | null> {
   await connectMongo();
-  const title = input.title.trim();
-
-  if (!title) {
+  // Keep whitespace while typing; only empty/whitespace titles clear the slot.
+  const title = input.title;
+  if (!title.trim()) {
     await Task.deleteOne({ userId, date: input.date, hour: input.hour });
     return null;
   }

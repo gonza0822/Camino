@@ -51,7 +51,7 @@ export async function saveTaskSlotAction(input: unknown) {
 
   try {
     const task = await saveTaskSlot(userId, parsed.data);
-    revalidatePath("/");
+    // Skip revalidating "/" while typing — client state owns the input until navigation.
     revalidatePath("/semanal");
     revalidatePath("/calendario");
     return { success: true, task };
