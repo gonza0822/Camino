@@ -47,10 +47,10 @@ Google **bloquea OAuth dentro de WebViews** (user agent con `; wv)`). En Capacit
 ## Logout en Android
 
 En WebView Android las cookies de sesión a veces **no se persisten borradas** al disco: el usuario ve `/login`, mata la app y al reabrir vuelve la cookie vieja → agenda autenticada.
-- Logout vía **`signOutClient`** (`features/auth/lib/signOutClient.ts`): Auth.js + `CapacitorCookies.clearCookies` / `clearAllCookies`.
+- Logout vía **`signOutClient`**: Auth.js + `CapacitorCookies.clearCookies` **solo del origin de Camino** (no `clearAllCookies`, para no borrar la sesión de Google y el listado de cuentas).
 - `MainActivity.onPause` → `CookieManager.flush()`; `onCreate(null)` para no restaurar stack viejo del WebView.
 
-Tras cambiar config nativa: `CAMINO_APP_URL=... npm run cap:sync`, rebuild APK e **reinstalar**.
+El selector nativo de cuentas de Android (las del teléfono) **no aparece en WebView**: solo las cuentas con cookie de Google dentro del WebView. Para el picker del sistema haría falta Custom Tabs / navegador externo.
 
 ## Qué no hacer
 
