@@ -1,12 +1,21 @@
 import type { MongoClientOptions } from "mongodb";
+import type { ConnectOptions } from "mongoose";
 
-// Shared driver options for Atlas on Windows (IPv4, shorter timeout).
+// Shared Atlas options tuned for Vercel serverless + M0 (small pool, IPv4, short select).
 export const mongoClientOptions: MongoClientOptions = {
-  serverSelectionTimeoutMS: 10000,
+  maxPoolSize: 1,
+  minPoolSize: 0,
+  maxIdleTimeMS: 10_000,
+  serverSelectionTimeoutMS: 8_000,
+  connectTimeoutMS: 8_000,
   family: 4,
 };
 
-export const mongooseConnectOptions = {
-  serverSelectionTimeoutMS: 10000,
-  family: 4 as const,
+export const mongooseConnectOptions: ConnectOptions = {
+  maxPoolSize: 1,
+  minPoolSize: 0,
+  maxIdleTimeMS: 10_000,
+  serverSelectionTimeoutMS: 8_000,
+  connectTimeoutMS: 8_000,
+  family: 4,
 };

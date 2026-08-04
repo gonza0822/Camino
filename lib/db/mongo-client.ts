@@ -25,11 +25,7 @@ function getMongoUri(): string {
 function getClientPromise(): Promise<MongoClient> {
   const uri = getMongoUri();
 
-  if (
-    process.env.NODE_ENV === "development" &&
-    global._mongoClientUri &&
-    global._mongoClientUri !== uri
-  ) {
+  if (global._mongoClientUri && global._mongoClientUri !== uri) {
     global._mongoClientPromise = undefined;
     void global._mongoClient?.close().catch(() => undefined);
     global._mongoClient = undefined;

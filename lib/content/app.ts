@@ -1,6 +1,12 @@
 export const appContent = {
   appName: "Camino",
   tagline: "Planificá tu día, tu semana y tus objetivos",
+  runtimeError: {
+    title: "No se pudo cargar la página",
+    description:
+      "Hubo un fallo temporal del servidor (suele ser la conexión a la base). Probá recargar.",
+    reload: "Recargar",
+  },
   nav: {
     dashboard: "Hoy",
     weekly: "Semana",
