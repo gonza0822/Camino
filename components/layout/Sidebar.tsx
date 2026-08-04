@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { appContent } from "@/lib/content/app";
+import { signOutClient } from "@/features/auth/lib/signOutClient";
 import { AppDownloadButton } from "@/features/desktop/components/AppDownloadButton";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { cn } from "@/lib/utils/cn";
@@ -59,7 +59,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         <AppDownloadButton onNavigate={onNavigate} />
         <button
           type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => {
+            void signOutClient("/login");
+          }}
           className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted transition-colors duration-200 hover:bg-primary/5 hover:text-primary cursor-pointer"
         >
           {appContent.auth.logout}
