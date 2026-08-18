@@ -51,8 +51,7 @@ export async function saveTaskSlotAction(input: unknown) {
 
   try {
     const task = await saveTaskSlot(userId, parsed.data);
-    // Skip revalidating "/" while typing — client state owns the input until navigation.
-    revalidatePath("/semanal");
+    // Skip revalidating agenda routes while typing — client state owns the input.
     revalidatePath("/calendario");
     return { success: true, task };
   } catch (error) {
