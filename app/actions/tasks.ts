@@ -51,8 +51,7 @@ export async function saveTaskSlotAction(input: unknown) {
 
   try {
     const task = await saveTaskSlot(userId, parsed.data);
-    // Skip revalidating agenda routes while typing — client state owns the input.
-    revalidatePath("/calendario");
+    // No revalidatePath here: refreshing RSC while typing overwrites the input.
     return { success: true, task };
   } catch (error) {
     console.error("[saveTaskSlotAction]", error);

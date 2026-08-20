@@ -22,7 +22,7 @@ interface HourlyAgendaProps {
   bottomInsetPx?: number;
 }
 
-const SAVE_DEBOUNCE_MS = 900;
+const SAVE_DEBOUNCE_MS = 1000;
 
 function slotsFromTasks(tasks: TaskDto[], hours: number[]): Record<number, SlotState> {
   const byHour = new Map(tasks.map((t) => [t.hour, t]));
@@ -51,34 +51,68 @@ export function HourlyAgenda({
   const [slots, setSlots] = useState(() => slotsFromTasks(tasks, hours));
   const dirtyRef = useRef<Set<number>>(new Set());
   const pendingCompleteRef = useRef<Set<number>>(new Set());
+  const focusedHourRef = useRef<number | null>(null);
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const saveSeqRef = useRef<Map<number, number>>(new Map());
   const latestRef = useRef(slots);
+  const hoursKey = hours.join(",");
   const [, startTransition] = useTransition();
 
   latestRef.current = slots;
 
+  // True while the user is editing a slot — never overwrite that title from props.
+  function isLocked(hour: number): boolean {
+    return (
+      dirtyRef.current.has(hour) ||
+      pendingCompleteRef.current.has(hour) ||
+      focusedHourRef.current === hour ||
+      timersRef.current.has(hour)
+    );
+  }
+
+  // Reset local state only when the calendar day changes.
   useEffect(() => {
     dirtyRef.current.clear();
     pendingCompleteRef.current.clear();
+    focusedHourRef.current = null;
+    for (const timer of timersRef.current.values()) clearTimeout(timer);
+    timersRef.current.clear();
+    saveSeqRef.current.clear();
     setSlots(slotsFromTasks(tasks, hours));
-  }, [date, hours]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only remount agenda when day changes
+  }, [date]);
 
+  // Merge server tasks into unlocked slots only (ids/completion), never mid-edit titles.
   useEffect(() => {
     setSlots((prev) => {
-      const next = { ...prev };
       const byHour = new Map(tasks.map((t) => [t.hour, t]));
+      let changed = false;
+      const next = { ...prev };
+
       for (const hour of hours) {
-        if (dirtyRef.current.has(hour) || pendingCompleteRef.current.has(hour)) continue;
+        if (isLocked(hour)) continue;
         const task = byHour.get(hour);
-        next[hour] = {
+        const incoming: SlotState = {
           id: task?.id,
           title: task?.title ?? "",
           completed: task?.completed ?? false,
         };
+        const current = prev[hour];
+        if (
+          current?.id === incoming.id &&
+          current?.title === incoming.title &&
+          current?.completed === incoming.completed
+        ) {
+          continue;
+        }
+        next[hour] = incoming;
+        changed = true;
       }
-      return next;
+
+      return changed ? next : prev;
     });
-  }, [tasks, hours]);
+    // hoursKey avoids resetting when parent passes a new hours[] reference each render
+  }, [tasks, hoursKey]);
 
   useEffect(() => {
     return () => {
@@ -91,6 +125,8 @@ export function HourlyAgenda({
   const persistSlot = useCallback(
     (hour: number) => {
       const titleAtSave = latestRef.current[hour]?.title ?? "";
+      const seq = (saveSeqRef.current.get(hour) ?? 0) + 1;
+      saveSeqRef.current.set(hour, seq);
 
       startTransition(async () => {
         const result = await saveTaskSlotAction({
@@ -99,14 +135,19 @@ export function HourlyAgenda({
           title: titleAtSave,
         });
 
+        // Ignore stale responses from earlier keystrokes.
+        if (saveSeqRef.current.get(hour) !== seq) return;
         if (result.error) return;
 
-        // Skip applying if the user typed again while this save was in flight.
-        if ((latestRef.current[hour]?.title ?? "") !== titleAtSave) return;
+        const stillTyping =
+          focusedHourRef.current === hour ||
+          (latestRef.current[hour]?.title ?? "") !== titleAtSave ||
+          timersRef.current.has(hour);
 
-        dirtyRef.current.delete(hour);
+        if (!stillTyping) {
+          dirtyRef.current.delete(hour);
+        }
 
-        // Only sync server id/completion — never replace the in-progress input text.
         setSlots((prev) => {
           const localTitle = prev[hour]?.title ?? "";
           if (!result.task) {
@@ -121,6 +162,7 @@ export function HourlyAgenda({
             ...prev,
             [hour]: {
               id: result.task.id,
+              // Always keep what the user currently sees.
               title: localTitle,
               completed: pendingCompleteRef.current.has(hour)
                 ? (prev[hour]?.completed ?? result.task.completed)
@@ -155,7 +197,14 @@ export function HourlyAgenda({
     scheduleSave(hour);
   }
 
+  function handleFocus(hour: number) {
+    focusedHourRef.current = hour;
+  }
+
   function handleBlur(hour: number) {
+    if (focusedHourRef.current === hour) {
+      focusedHourRef.current = null;
+    }
     const timer = timersRef.current.get(hour);
     if (timer) {
       clearTimeout(timer);
@@ -249,59 +298,57 @@ export function HourlyAgenda({
     >
       {hours.map((hour) => {
         const slot = slots[hour] ?? { title: "", completed: false };
+        const showCheckbox = Boolean(slot.title.trim() || slot.id);
 
         return (
           <div
-            key={hour}
+            key={`${date}-${hour}`}
             className="flex min-h-[var(--agenda-row-min)] shrink-0 items-center gap-2 border-b border-border/60 px-3 last:border-b-0 sm:gap-3 lg:min-h-0 lg:flex-1 lg:shrink"
           >
             <div className="w-12 shrink-0 font-mono text-xs tabular-nums text-muted">
               {formatHourLabel(hour)}
             </div>
 
-            {(slot.title.trim() || slot.id) && (
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => toggleComplete(hour)}
-                disabled={!slot.title.trim() && !slot.id}
-                aria-checked={slot.completed}
-                role="checkbox"
-                aria-label={
-                  slot.completed
-                    ? appContent.dashboard.markIncomplete
-                    : appContent.dashboard.markComplete
-                }
-                className={cn(
-                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200",
-                  slot.title.trim() || slot.id
-                    ? "cursor-pointer"
-                    : "cursor-default opacity-40",
-                  slot.completed
-                    ? "border-success bg-success text-white"
-                    : "border-border hover:border-primary",
-                )}
-              >
-                {slot.completed && (
-                  <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                )}
-              </button>
-            )}
-            {!slot.title.trim() && !slot.id && (
-              <span className="h-4 w-4 shrink-0" aria-hidden />
-            )}
+            {/* Stable slot so the input never remounts when the checkbox appears. */}
+            <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+              {showCheckbox ? (
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => toggleComplete(hour)}
+                  aria-checked={slot.completed}
+                  role="checkbox"
+                  aria-label={
+                    slot.completed
+                      ? appContent.dashboard.markIncomplete
+                      : appContent.dashboard.markComplete
+                  }
+                  className={cn(
+                    "flex h-4 w-4 cursor-pointer items-center justify-center rounded-full border-2 transition-colors duration-200",
+                    slot.completed
+                      ? "border-success bg-success text-white"
+                      : "border-border hover:border-primary",
+                  )}
+                >
+                  {slot.completed && (
+                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </button>
+              ) : null}
+            </div>
 
             <input
               type="text"
               value={slot.title}
               onChange={(e) => handleTitleChange(hour, e.target.value)}
+              onFocus={() => handleFocus(hour)}
               onBlur={() => handleBlur(hour)}
               placeholder={appContent.dashboard.emptySlot}
               maxLength={200}

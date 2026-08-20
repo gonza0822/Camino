@@ -1,4 +1,8 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source ".";
+@source "../components";
+@source "../features";
+@source "../lib";
 
 :root {
   --color-primary: #0d9488;
