@@ -14,6 +14,13 @@ export interface GoalDto {
   sortOrder: number;
 }
 
+export interface ReminderDto {
+  id: string;
+  title: string;
+  completed: boolean;
+  sortOrder: number;
+}
+
 export interface WeeklyGoalDto extends GoalDto {
   weekStart: string;
 }

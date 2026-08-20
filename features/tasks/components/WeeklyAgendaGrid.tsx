@@ -1,8 +1,22 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { formatDayParts, getTodayKey, getWeekDateKeys } from "@/lib/utils/date";
+import {
+  formatDayParts,
+  getMonday,
+  getTodayKey,
+  getWeekDateKeys,
+  toDateKey,
+} from "@/lib/utils/date";
 import { HourlyAgenda } from "@/features/tasks/components/HourlyAgenda";
+import {
+  consumeHardReloadReset,
+  readWeeklyViewMemory,
+  writeWeeklyViewMemory,
+} from "@/features/planning/weeklyViewMemory";
+import { useAppDispatch } from "@/store/hooks";
+import { clearWeeklyView, setWeeklyView } from "@/store/slices/uiSlice";
 import type { TaskDto } from "@/types/app";
 import { cn } from "@/lib/utils/cn";
 
@@ -13,12 +27,23 @@ interface WeeklyAgendaGridProps {
   hours: number[];
 }
 
-// Picks the URL day if valid, otherwise today when it belongs to the week.
+// Prefers URL day, then today when it belongs to the week, then Monday.
 function resolveActiveDate(dates: string[], dayParam: string | null): string {
   if (dayParam && dates.includes(dayParam)) return dayParam;
   const today = getTodayKey();
   if (dates.includes(today)) return today;
   return dates[0];
+}
+
+// Saves week/day to Redux + sessionStorage for soft section switches.
+function persistWeeklyView(
+  dispatch: ReturnType<typeof useAppDispatch>,
+  weekStart: string,
+  day: string,
+) {
+  const memory = { weekStart, day };
+  writeWeeklyViewMemory(memory);
+  dispatch(setWeeklyView(memory));
 }
 
 export function WeeklyAgendaGrid({
@@ -29,11 +54,78 @@ export function WeeklyAgendaGrid({
 }: WeeklyAgendaGridProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeDate = resolveActiveDate(dates, searchParams.get("day"));
-
+  const dispatch = useAppDispatch();
+  const bootstrappedRef = useRef(false);
+  const dayParam = searchParams.get("day");
+  const activeDate = resolveActiveDate(dates, dayParam);
   const tasksForDay = tasks.filter((t) => t.date === activeDate);
 
+  // Soft nav keeps the chosen day; hard reload resets to today once per page load.
+  useEffect(() => {
+    if (bootstrappedRef.current) return;
+    bootstrappedRef.current = true;
+
+    if (consumeHardReloadReset()) {
+      dispatch(clearWeeklyView());
+      const today = getTodayKey();
+      const currentWeekStart = toDateKey(getMonday(new Date()));
+      const currentDates = getWeekDateKeys(currentWeekStart);
+      const day = currentDates.includes(today) ? today : currentDates[0];
+      persistWeeklyView(dispatch, currentWeekStart, day);
+      if (
+        searchParams.get("week") !== currentWeekStart ||
+        searchParams.get("day") !== day
+      ) {
+        router.replace(
+          `/semanal?${new URLSearchParams({
+            week: currentWeekStart,
+            day,
+          }).toString()}`,
+        );
+      }
+      return;
+    }
+
+    const remembered = readWeeklyViewMemory();
+    const urlWeek = searchParams.get("week");
+    const urlDay = searchParams.get("day");
+
+    if (!urlWeek && !urlDay && remembered) {
+      persistWeeklyView(dispatch, remembered.weekStart, remembered.day);
+      router.replace(
+        `/semanal?${new URLSearchParams({
+          week: remembered.weekStart,
+          day: remembered.day,
+        }).toString()}`,
+      );
+      return;
+    }
+
+    if (urlWeek && !urlDay) {
+      const dayToKeep =
+        remembered?.weekStart === weekStart && dates.includes(remembered.day)
+          ? remembered.day
+          : activeDate;
+      persistWeeklyView(dispatch, weekStart, dayToKeep);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("week", weekStart);
+      params.set("day", dayToKeep);
+      router.replace(`/semanal?${params.toString()}`);
+      return;
+    }
+
+    if (urlDay && dates.includes(urlDay)) {
+      persistWeeklyView(dispatch, weekStart, urlDay);
+    }
+  }, [activeDate, dates, dispatch, router, searchParams, weekStart]);
+
+  useEffect(() => {
+    if (!dayParam || !dates.includes(dayParam)) return;
+    persistWeeklyView(dispatch, weekStart, dayParam);
+  }, [weekStart, dayParam, dates, dispatch]);
+
   function selectDay(date: string) {
+    persistWeeklyView(dispatch, weekStart, date);
     const params = new URLSearchParams(searchParams.toString());
     params.set("week", weekStart);
     params.set("day", date);
@@ -74,5 +166,3 @@ export function WeeklyAgendaGrid({
     </div>
   );
 }
-
-export { getWeekDateKeys };

@@ -64,6 +64,17 @@ export const appContent = {
       closePanel: "Cerrar panel de notas",
       resizePanel: "Redimensionar panel de notas",
     },
+    reminders: {
+      title: "Recordatorios",
+      placeholder: "Nuevo recordatorio…",
+      add: "Agregar",
+      empty: "Sin recordatorios todavía.",
+      open: "Abrir recordatorios",
+      close: "Cerrar recordatorios",
+      markComplete: "Marcar como hecho",
+      markIncomplete: "Marcar como pendiente",
+      delete: "Eliminar recordatorio",
+    },
   },
   weekly: {
     title: "Planificación semanal",

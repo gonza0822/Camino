@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { appContent } from "@/lib/content/app";
 import { signOutClient } from "@/features/auth/lib/signOutClient";
 import { AppDownloadButton } from "@/features/desktop/components/AppDownloadButton";
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import { weeklyHrefFromMemory } from "@/features/planning/weeklyViewMemory";
+import { useAppSelector } from "@/store/hooks";
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
@@ -25,12 +27,24 @@ interface SidebarProps {
 
 export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const weeklyView = useAppSelector((state) => state.ui.weeklyView);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
   const [, startTransition] = useTransition();
+
+  // Keep SSR and first client paint identical; apply remembered week/day after mount.
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     setPendingHref(null);
   }, [pathname]);
+
+  const weeklyHref = hydrated
+    ? weeklyHrefFromMemory(weeklyView ?? undefined)
+    : "/semanal";
 
   return (
     <aside className="flex h-full flex-col border-r border-border/70 bg-surface/90 backdrop-blur-md">
@@ -52,15 +66,30 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
-          const active = pathname === item.href;
+          const href = item.href === "/semanal" ? weeklyHref : item.href;
+          const active =
+            item.href === "/semanal"
+              ? pathname.startsWith("/semanal")
+              : pathname === item.href;
           const pending = pendingHref === item.href;
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={href}
               prefetch
-              onClick={() => {
+              onClick={(event) => {
                 onNavigate?.();
+                if (item.href === "/semanal") {
+                  const nextHref = weeklyHrefFromMemory(weeklyView ?? undefined);
+                  if (nextHref !== href) {
+                    event.preventDefault();
+                    startTransition(() => {
+                      setPendingHref(item.href);
+                      router.push(nextHref);
+                    });
+                    return;
+                  }
+                }
                 if (!active) {
                   startTransition(() => setPendingHref(item.href));
                 }

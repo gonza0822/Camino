@@ -3,7 +3,10 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { appContent } from "@/lib/content/app";
 import { Button } from "@/components/ui/Button";
-import { toDateKey, parseDateKey } from "@/lib/utils/date";
+import { writeWeeklyViewMemory } from "@/features/planning/weeklyViewMemory";
+import { toDateKey, parseDateKey, getWeekDateKeys, getTodayKey } from "@/lib/utils/date";
+import { useAppDispatch } from "@/store/hooks";
+import { setWeeklyView } from "@/store/slices/uiSlice";
 
 interface WeekNavigatorProps {
   weekStart: string;
@@ -12,14 +15,23 @@ interface WeekNavigatorProps {
 export function WeekNavigator({ weekStart }: WeekNavigatorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const dispatch = useAppDispatch();
 
   function navigateWeek(offset: number) {
     const date = parseDateKey(weekStart);
     date.setDate(date.getDate() + offset * 7);
     const newWeek = toDateKey(date);
+    const dates = getWeekDateKeys(newWeek);
+    const today = getTodayKey();
+    const day = dates.includes(today) ? today : dates[0];
+    const memory = { weekStart: newWeek, day };
+
+    writeWeeklyViewMemory(memory);
+    dispatch(setWeeklyView(memory));
+
     const params = new URLSearchParams(searchParams.toString());
     params.set("week", newWeek);
-    params.delete("day");
+    params.set("day", day);
     router.push(`/semanal?${params.toString()}`);
   }
 

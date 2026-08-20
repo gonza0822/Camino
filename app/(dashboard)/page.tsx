@@ -5,9 +5,11 @@ import { appContent } from "@/lib/content/app";
 import { getSessionUserId } from "@/lib/auth/session";
 import { getTasksByDate } from "@/lib/services/taskService";
 import { getDailyNote } from "@/lib/services/dailyNoteService";
+import { listReminders } from "@/lib/services/reminderService";
 import { getTodayKey, formatDisplayDate, getHourRange } from "@/lib/utils/date";
 import { TodayDashboardColumn } from "@/features/notes/components/TodayDashboardColumn";
 import { TodayMatchesPanel } from "@/features/football/components/TodayMatchesPanel";
+import { TodayReminders } from "@/features/reminders/components/TodayReminders";
 
 export const metadata: Metadata = {
   title: appContent.nav.dashboard,
@@ -20,9 +22,10 @@ export default async function DashboardPage() {
   const today = getTodayKey();
   const hours = getHourRange();
 
-  const [tasks, note] = await Promise.all([
+  const [tasks, note, reminders] = await Promise.all([
     getTasksByDate(userId, today),
     getDailyNote(userId, today),
+    listReminders(userId),
   ]);
 
   return (
@@ -48,6 +51,8 @@ export default async function DashboardPage() {
       >
         <TodayMatchesPanel date={today} />
       </Suspense>
+
+      <TodayReminders initialReminders={reminders} />
     </div>
   );
 }
