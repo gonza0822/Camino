@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { appContent } from "@/lib/content/app";
 import { getSessionUserId } from "@/lib/auth/session";
 import { getTasksByDate } from "@/lib/services/taskService";
 import { getDailyNote } from "@/lib/services/dailyNoteService";
-import { searchFootballMatches } from "@/lib/services/footballService";
 import { getTodayKey, formatDisplayDate, getHourRange } from "@/lib/utils/date";
 import { TodayDashboardColumn } from "@/features/notes/components/TodayDashboardColumn";
-import { TodayMatchesSidebar } from "@/features/football/components/TodayMatchesSidebar";
-import type { FootballMatchDto } from "@/types/football";
+import { TodayMatchesPanel } from "@/features/football/components/TodayMatchesPanel";
 
 export const metadata: Metadata = {
   title: appContent.nav.dashboard,
@@ -21,10 +20,9 @@ export default async function DashboardPage() {
   const today = getTodayKey();
   const hours = getHourRange();
 
-  const [tasks, note, matchesResult] = await Promise.all([
+  const [tasks, note] = await Promise.all([
     getTasksByDate(userId, today),
     getDailyNote(userId, today),
-    loadTodayMatches(today),
   ]);
 
   return (
@@ -37,22 +35,19 @@ export default async function DashboardPage() {
         noteContent={note.content}
       />
 
-      <TodayMatchesSidebar
-        matches={matchesResult.matches}
-        fetchError={matchesResult.error}
-      />
+      <Suspense
+        fallback={
+          <aside className="flex h-[30vh] w-full shrink-0 flex-col self-stretch overflow-hidden border-t border-border/70 bg-surface p-4 lg:h-full lg:w-80 lg:border-l lg:border-t-0">
+            <div className="mb-3 h-5 w-32 animate-pulse rounded bg-primary/15" />
+            <div className="space-y-3">
+              <div className="h-16 animate-pulse rounded-lg bg-primary/10" />
+              <div className="h-16 animate-pulse rounded-lg bg-primary/10" />
+            </div>
+          </aside>
+        }
+      >
+        <TodayMatchesPanel date={today} />
+      </Suspense>
     </div>
   );
-}
-
-// Loads today's soccer fixtures; failures should not block the agenda.
-async function loadTodayMatches(
-  date: string,
-): Promise<{ matches: FootballMatchDto[]; error: boolean }> {
-  try {
-    const matches = await searchFootballMatches({ date, scope: "next" });
-    return { matches, error: false };
-  } catch {
-    return { matches: [], error: true };
-  }
 }
